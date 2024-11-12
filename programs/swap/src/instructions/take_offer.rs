@@ -55,7 +55,7 @@ pub struct TakeOffer<'info> {
         has_one = token_mint_a,
         has_one = token_mint_b,
         seeds = [b"offer",maker.key().as_ref(),offer.id.to_le_bytes().as_ref()],
-        bump,
+        bump = offer.bump,
     )]
     pub offer: Account<'info, Offer>,
 
@@ -87,12 +87,12 @@ pub fn withdraw_and_close_vault(ctx: Context<TakeOffer>) -> Result<()> {
     // Transfer the tokens from the vault to the taker
     let seeds = &[
         b"offer",
-        ctx.accounts.maker.key.as_ref(),
-        &ctx.accounts.offer.id.to_le_bytes(),
+        ctx.accounts.maker.to_account_info().key.as_ref(),
+        &ctx.accounts.offer.id.to_le_bytes()[..],
         &[ctx.accounts.offer.bump],
     ];
 
-    let signer_seeds = &[&seeds[..]];
+    let signer_seeds = [&seeds[..]];
     let accounts = TransferChecked {
         from: ctx.accounts.vault.to_account_info(),
         to: ctx.accounts.taker_token_account_a.to_account_info(),
@@ -103,7 +103,7 @@ pub fn withdraw_and_close_vault(ctx: Context<TakeOffer>) -> Result<()> {
     let cpi_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         accounts,
-        signer_seeds,
+        &signer_seeds,
     );
 
     transfer_checked(
@@ -122,7 +122,7 @@ pub fn withdraw_and_close_vault(ctx: Context<TakeOffer>) -> Result<()> {
     let cpi_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         accounts,
-        signer_seeds,
+        &signer_seeds,
     );
 
     close_account(cpi_ctx)
