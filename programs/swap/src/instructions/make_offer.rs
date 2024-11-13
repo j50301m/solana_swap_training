@@ -72,7 +72,7 @@ pub fn save_offer(ctx: Context<MakeOffer>, id: u64, token_b_wanted_amount: u64) 
         token_mint_a: ctx.accounts.token_mint_a.key(),
         token_mint_b: ctx.accounts.token_mint_b.key(),
         token_b_wanted_amount,
-        bump: ctx.accounts.offer.bump,
+        bump: ctx.bumps.offer // Warn!! Don't use ctx.accounts.offer.bump here because it's not initialized yet
     });
 
     Ok(())
